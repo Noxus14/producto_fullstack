@@ -3,7 +3,7 @@ import * as L from 'leaflet';
 import carto from '@carto/carto.js';
 import 'leaflet/dist/leaflet.css';
 import PropTypes from 'prop-types';
-import { getPoints } from '../Utils/ApiUils';
+import { getPoints, getDecode } from '../Utils/ApiUils';
 import './Map.css';
 
 function Map (props) {
@@ -38,9 +38,9 @@ function Map (props) {
     pointsLayer.addTo(map.current);
     
     pointsLayer.eachLayer(point=> {
-      point.on('click', e => {
+      point.on('click', async (e) => {
         let htmlContent;
-        htmlContent = makeMarkupOnePoint(e.latlng.lat, e.latlng.lng, e.direction);
+        htmlContent = await makeMarkupOnePoint(e.latlng.lat, e.latlng.lng, e.direction);
         popup.setContent(htmlContent);
         popup.setLatLng(e.latlng);
         if (!popup.isOpen()) {
@@ -49,7 +49,6 @@ function Map (props) {
       });
     });
   };
-  
     
   useEffect(() => {
     map.current = L.map('map', {
@@ -89,19 +88,19 @@ const createPointsLayer = async (user, key, tableName) => {
   return L.layerGroup(pointsArray);
 };
     
-function makeMarkupOnePoint(lat, lng, info = '') {
-  return `
+async function makeMarkupOnePoint(lat, lng, info = '') {
+  info = await getDecode(lat, lng);
+   return  `
     <div class="widget">
     ${lat ? `
     <h3>${lat}, ${lng}</h3>
     `: ''}
-    ${info ? `
+    ${ info ? `
     <h4>${info}</h4>
     `: '<h4>No hay dirección</h4>'}
     </div>
   `;
 }
-    
     
 Map.propTypes = {
   basemapURL: PropTypes.string,
